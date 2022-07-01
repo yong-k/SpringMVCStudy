@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	id="WebApp_ID" version="3.1">
+	<display-name>mvc01</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+	
+	
+	<!-- ※ Spring MVC Framework 등록 -->
+	<!--    → Front Controller 등록 -->
+	<!--    → DispatcherServlet 객체 등록  -->
+	
+	
+<!-- 
+	+) 
+	DispatcherServlet이 로드되면 
+	contextConfigLocation 파라미터로 설정 파일이 지정되어 있지 않다면 
+	WEB-INF/서블릿이름-servlet.xml파일에 정의된 빈들을 
+	WebApplicationContext에 로딩한다
+ -->	
+ 
+	<servlet>
+		<!-- mapping쪽에서 서블릿 이름 찾아서 여기로 오면
+		     'DispatcherServlet' 이름 가진 객체에게 전달 
+		      =================
+		      이렇게만 되어있으면 객체 아님. 뭔지 모름
+		      아무 java 파일 가서 DispatcherServlet 입력하면
+		      import 된 거 가져오기 
+		      org.springframework.web.servlet.DispatcherServlet  -->
+		<servlet-name>dispatcher</servlet-name>
+		<!-- <servlet-class>DispatcherServlet</servlet-class> 
+		dispatcher-servlet.xml 가서 작성      					  -->
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+														<!-- └→ frontController 등록 -->
+	</servlet>
+	
+	<!-- server로 들어온 내용이 *.action 이기만 하면
+	     그걸 dispatcher 이름가진 서블릿에게 인도하겠다. -->
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name>
+		<url-pattern>*.action</url-pattern>
+	</servlet-mapping>
+	
+	
+</web-app>

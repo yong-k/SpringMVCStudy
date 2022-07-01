@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- mapper의 namespace에는 -->
+<!-- package 경로가 포함되어 있는 interface 쓰면 된다. -->
+<!-- ○ mapper 엘리먼트의 『namespace="패키지 경로가 포함된 인터페이스"』 -->
+<!--    - 인터페이스 내부에 메소드명이 선언되어 있어야 한다. -->
+<!--    - 이 메소드 명과 『id="식별자"』가 일치해야 한다. -->
+<mapper namespace="com.test.mybatis.IStudentDAO">
+
+	<!-- ○ 『id="식별자"』 속성 추가 -->
+	<!--    - 인터페이스에 선언된 메소드의 이름과 일치해야 하며 -->
+	<!--     호출 메소드명 역할을 수행하게 된다. -->
+	
+	<!-- ○ 『resultType="패키지 경로가 포함된 자료형 클래스"』 속성 추가 -->
+	<!--                 
+			- string     : java.lang.String     
+			- byte       : java.lang.Byte
+			- long       : java.lang.Long
+			- short      : java.lang.Short
+			- int        : java.lang.Integer
+			- Integer    : java.lang.Integer
+			- double     : java.lang.Double
+			- float      : java.lang.Float
+			- boolean    : java.lang.Boolean
+			- decimal    : java.lang.BigDecimal
+			- Object     : java.lang.Object
+			- map        : java.util.Map
+			- hashmap    : java.util.HashMap
+			- list       : java.util.List
+			- arraylist  : java.util.ArrayList
+			- collection : java.util.Collection
+			- iterator   : java.util.Iterator
+	-->
+	
+	<!-- ○ 쿼리 내부에 있는 컬럼명의 정보가 -->
+	<!--    자료형 클래스(DTO) 멤버 변수(속성)와 일치하는 경우 -->
+	<!--    자동 매핑이 이루어진다. -->
+	
+	<!-- 쿼리문 가져올 때 『;』 제외하고 가져오기!! -->
+	<select id="list" resultType="com.test.mybatis.StudentDTO">
+		SELECT SID, NAME, TEL, SUB
+		FROM STUDENTVIEW
+	</select>
+	
+	<select id="count" resultType="java.lang.Integer">
+		SELECT COUNT(*) AS COUNT
+		FROM TBL_STUDENT
+	</select>
+	
+	<!-- 직접 sid, name, tel을 건네주는게 아니라 -->
+	<!-- dto를 건네면 자기가 알아서 뽑아서 쓰는거 -->
+	<!-- 
+		#으로 바인딩하는 건, 데이터타입에 크게 영향 안받는다.
+		받아온 걸 내가 지금 입력하려고 하는 property와 데이터타입 맞지 않으면 형변환 해버림
+		내부적으로 preparedStatement 사용해서, 받아온게 무엇이든 set 하는 과정에서 property에 맞는 타입으로 set 해준다.
+	-->
+	<insert id="add">
+		<!-- 
+		INSERT INTO TBL_STUDENT(SID, NAME, TEL)
+		VALUES(#{sid}, #{name}, #{tel})
+		-->
+		
+		<!-- 위에처럼 안하고 EL 처럼 쓰는 방법도 있다. -->
+		<!-- 그런데 EL 문법은 아니다. -->
+		<!-- 여기서는 내가 직접 데이터 타입 정해줘야 한다. string 처리해야하는 거에 '' 를 붙여야 한다. -->
+		 
+		INSERT INTO TBL_STUDENT(SID, NAME, TEL)
+		VALUES(${sid}, '${name}', '${tel}')
+		 
+	</insert>
+	
+</mapper>

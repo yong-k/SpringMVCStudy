@@ -1,0 +1,878 @@
+■■■ Annotation(어노테이션) ■■■	→ 주석
+
+○ 개요
+   - 일종의 주석(사전적인 의미 : 주석달기, 메타 데이터)
+   - 메타 데이터 : 데이터를 부연 설명하기 위한 데이터
+   - 주석의 지속성
+     : *.java(소스 레벨) → [컴파일러(Compiler)] → *.class → [JVM : Runtime]
+		→ 우리가 작성한 소스코드 바로 자바가 읽는게 아니라, 한 번 과정을 거치고 읽음
+		   우리가 컴파일러한테 건네준 .java 가 실행되는게 아니라,
+   		   컴파일러가 번역해서 결과로 남겨둔 .class 가 실행되는 것이다.
+		   --------
+		   └→ 컨테이너 역할을 수행
+
+       이 과정에서 보통 컴파일이 되면 주석이 제거
+       (//, /*...*/, /**...*/)
+
+→ 주석을 JVM 이나 컴파일러한테까지 전달하고 싶음
+   html 주석은 jsp container 눈에 보이지만, jsp 주석은 jsp container 눈에 안 보임
+  일반적 주석 사용하자니, 컴파일러가 들여다보지 못하고,
+  그냥 문법적으로 쓰자니, 자바 문법이랑 어긋나서 문제일으키다보니까 약속으로 정함
+  문법적으로 기본 문법 훼손하지 않으면서, 자바 컴파일러/JVM에게 전달하는 수단 만듦
+  → Annotation
+
+   - 『@』 : Annotation, JDK 1.5(JavaSE 5.0)부터 사용 가능, Runtime 까지도 존재
+   - AT(Annotation Type)
+
+
+○ 메타 데이터의 가치
+   일반적으로 메타 데이터의 효용은 다음의 세 가지로 나눌 수 있다.
+   ①문서화, ②컴파일러 체크, ③코드 분석.
+
+   - 모든 레벨의 문서화는 자주 인용되는 사용법이다.
+     메타 데이터는 메소드가 다른 메소드에 의존하고 있다는 것을 알려주는
+     유용한 방법을 제공한다.
+     또한, 그들이 불완전한지, 특정 클래스가 또 다른 클래스를 래퍼런싱 하는지
+     등을 알려준다.
+     이는 유용하지만 문서화는 메타 데이터를 자바에 추가하는 것과 가장 관련이
+     적은 항목이다.
+     코드 문서화에 있어서는 Javadoc 라는 사용이 쉽고 강력한 방식을
+     제공하고 있기 때문이다.
+     → api document 같은 문서 만들어줌 (엄청 편하고 강력함)
+
+   - 컴파일러 체크 → 문서화보다 중요한 기능, 코드분석보다는 중요하지 않음
+     보다 중요한 메타 데이터의 장점은
+     컴파일러가 메타 데이터를 사용하여 몇 가지 기본적인 컴파일 시간 체크를
+     수행할 수 있는 기능이라고 할 수 있다.
+     예를 들어, Override 어노테이션을 이용하여 슈퍼 클래스의 메소드가
+     재정의된 것을 기술, 자바 컴파일러는 메타 데이터에서 알려주는 작동이
+     실제로 코드 레벨에서 발생한다는 것을 확인할 수 있다.
+     이는 실수로 오버라이딩하는 경우의 버그를 쉽게 찾을 수 있다.
+     → 런타임이 아니라 컴파일과정에서 인지하도록 함
+
+   - 코드 분석 (★)
+     좋은 어노테이션 또는 메타 데이터 툴의 최고의 기능은
+     여분의 데이터를 사용하여 코드를 분석하는 것이다.
+     간단한 경우, 코드 목록을 구현하고 필요한 인풋 유형을 제공하고
+     리턴 유형을 제시한다.
+     자바 리플렉션도 같은 기능을 제공한다고 생각할 수 있다.
+     결국 이 모든 정보에 대한 코드를 검사할 수 있다.
+     표면적으로 볼 때 그럴듯 하지만 실제로 그렇지 않다.
+     많은 경우 메소드는 인풋으로 받아들이거나 아웃풋으로 리턴한다.
+     이는 메소드가 원하는 것이 아니다.
+     예를 들어, 매개변수 유형이 Object 이지만 메소드는 Integer 를
+     사용해서만 작동한다. 이는 메소드가 겹쳐쓰기된 곳에서 쉽게 발생할 수 있다.
+     그리고 슈퍼 클래스가 메소드를 일반 매개변수로 선언하던가
+     많은 직렬화가 진행되는 시스템에서도 쉽게 발생한다.
+     두 경우 모두 메타 데이터는 코드 분석 툴을 지정할 수 있다.
+     매개변수 유형이 Object 이더라도 정말로 원하는 것을 Integer 라는 것을
+     나타낼 수 있다.
+     이러한 종류의 분석은 상당히 유용하며 그 가치는 상당하다.
+
+     보다 복잡한 경우 코드 분석 툴은 모든 종류의 추가 테스크들을 수행할 수 있다.
+     그 예 중 하나가 Enterprise JavaBean(EJB) 컴포넌트이다.
+     심지어 간단한 EJB 시스템도 의존성과 복잡성은 상당하다.
+     로컬 인터페이스이면서 로컬 홈 인터페이스가 될 가능성과 함께
+     홈 인터페이스와 원격 인터페이스를 얻는다.
+     이 모든 클래스들을 연동시키는 것은 많이 힘들다.
+     하지만 메타 데이터는 이 문제에 대한 솔루션을 제공한다.
+     좋은 툴은 이 모든 의존성을 관리하면서 코드-레벨 연결이 없지만
+     코드-레벨 관계를 가진 클래스들이 연동될 수 있도록 한다.
+     이것이 바로 메타 데이터의 진정한 가치라고 할 수 있다.
+
+
+○ Annotation 의 종류
+
+   1) Mark Annotation
+      변수가 없다. 이 어노테이션은 이름으로 구분되며 추가 데이터 없이 나타난다.
+      예를 들어, @MarkerAnnotation 은 marker 어노테이션이다.
+      데이터가 없으며 단지 어노테이션 이름만 있을 뿐이다.
+      ex) @Stateless
+          @Override
+
+   2) Single-value Annotation → 무언가를 설정하면서 어노테이션 설정
+      marker 와 비슷하지만 데이터를 제공한다.
+      싱글 비트 데이터를 제공하기 때문에 간단한 신택스를 사용할 수 있다.
+      (단, 어노테이션 유형이 이 문법을 수용해야 함)
+      : @SingleValueAnnotation("my data")
+        → 이는 @ 표시만 제외하고는 일반적인 자바 메소드 호출과 비슷하다.
+
+   3) Full Annotation(Multi value Annotation)
+      다중 데이터 멤버를 갖고 있다.
+      결과적으로 전체 신택스를 사용해야 한다.
+      (그리고, 어노테이션은 일반 자바 메소드와 더 이상 비슷하지 않다.)
+      : @FullAnnotation(var1="data value1", var2="data value2", var3="data value3")
+		→ 해당 값이 어떤 파라미터에 대입되는 걸 명시하는 구조로 써야해서
+		   일반 메소드와 비슷하지 않다고 필기
+
+   4) Custom Annotation 구현
+      : 개발자가 직접 Annotation 을 구현 
+	→ 지금 볼 필요는 없음. 실무에서 만들어서 쓸 일 없음
+      ex)
+      public @interface TODO		// Single-value Annotation
+      {
+      	  String value();		// value 가 아닌 이름을 사용하면
+      }					// 사용 시 메소드의 이름을 써준다.
+
+      // @TODO("something todo")
+
+      public @interface TODO		// Single-value Annotation
+      {
+          String msg();			// value 가 아닌 이름을 사용한 경우
+      }
+
+      // @TODO(msg="Something todo")
+
+
+○ Annotation 을 구분하는 또 다른 기준
+
+   1) Simple Annotation 
+      메소드나 변수 위에 붙이는 일반적인 Annotation	
+      ex) @Override
+
+   2) Meta Annotation (Complex Annotation)
+      Annotation 의 Annotation
+      (한 Annotation 위에 다른 Annotation 설정)
+
+※ Meta Annotation : 사용 빈도 ↓
+
+   1) @Target Annotation  
+      작성한 Annotation 이 어디에서 사용하게 될 지를 결정(→ 대상 지정)
+
+      @Target(
+      {
+	  ElementType.type			// 클래스, 인터페이스, enum
+	 , ElementType.METHOD			// 생성자를 제외한 모든 메소드
+	 , ElementType.CONSTRUCTOR		// 생성자
+	 , ElementType.ANNOTATION_TYPE		// 메타 Annotation
+      })
+
+   2) @Retention Annotation
+      @Retention Annotation([속성값])
+      작성한 Annotation의 지속성을 설정
+
+      - RetentionPosicy.SOURCE
+        : 컴파일러가 컴파일 시 삭제하여 클래스 파일에 저장되지 않는다.
+      - RetentionPosicy.CLASS
+        : 클래스 파일에 저장되지만 JVM 은 무시
+      - RetentionPosicy.RUNTIME
+        : 클래스 파일에 저장되고 JVM 은 유지
+
+
+○ 내장(Built-in) Annotation (※ java.lang.* 에 정의된 3개의 표준 어노테이션)
+
+   1) @Override
+      슈퍼 클래스의 메소드를 오버라이드
+
+      public class OberrideTest
+      {
+	   public OverrideTest() { }
+
+	   @Override
+	   public String toString()
+	   {
+	       return super.toString() + "[Override Test Implementation]";
+	   }
+
+	   @Override
+	   public int hashCode()
+	   {
+	       return toString().hashCode();
+	   }
+      }
+
+   2) @Deprecated
+      @Override 와 마찬가지로 @Deprecated 는 marker 어노테이션이다.
+      @Deprecated 를 사용하여 더 이상 사용되지 말아야 할 메소드에 주석을 부여한다.
+      @Override 와 다른 점은, @Deprecated 는 더 이상 사용되지 말아야 하는
+      (deprecated) 메소드와 동일한 라인상에 놓여져야 한다.
+      ----------------------------------------------------
+
++) 이클립스에 초록색 동그라미	      → 메소드
+   초록색 동그라미 + A 		      → 추상적인 메소드
+   초록색 동그라미에 / 그어져 있는 거 → Deprecated
+
+      public class DeprecatedClass
+      {
+	   @Deprecated public void deSomething()
+	   {
+	       // ... 실행 코드
+	   }  
+
+	   public void doSomethingElse()
+	   {
+	       // ... 실행 코드
+	       // doSomething() 메소드를 사용하는 것 보다
+	       // 향상된 형태의 코드	   
+	   }
+      }	        
+      
+   3) @SuppressWarnings
+      번거로운 경고를 제거한다.
+      Override 나 Deprecated 와는 다르게 @SuppressWarnings 는 변수를 갖고 있다.
+      따라서 이를 작동하게 하려면 Single-value 어노테이션 유형으로 사용해야 한다.
+      값 어레이로서 변수를 제공할 수 있다.
+      각각 삭제할(Suppress) 특정 유형의 경고를 나타낸다.
+	→ sc.close(); 노란색 뜨는거 그런거 안뜨게 할 수 있음!
+
+      @SuppressWarnings(value="unchecked")
+      public void nonGenericMethod()
+      {
+	   List wordList = new ArrayList();
+	   wordList.add("foo"); 
+      }
+
+
+---------------------------------------------------------------------------------------------
+
+■■■ Spring Annotation ■■■
+
+→ spring에게 설정정보를
+   Annotation 으로 전달하는게 고급, xml으로 전달하는게 예전방식 (Ⅹ)!!!!!! 틀린거
+
+xml은 프로그램을 건드릴 일이 없기 때문에 굉장히 유연한 방법
+annotation 을 쓰게 되면, 프로그램 자체에 직접 삽입하는 것
+	코드를 작성하는 과정에서 이미 그 프로그램 안에다가 작성하는 것
+	프로그램 안에다가 
+	프로그램1: '여기다 저걸 삽입해줘'
+	프로그램2: '저거' 
+	라고 작성해놓는거
+
+xml 은 xml에다가 '여기에다 『저걸』 삽입해주고, 그렇게 조립된 여기를 다시 거기에 삽입해주고
+		  어쩌구 저쩌구...' 라고 써놓는것!!!
+	→ '저걸' → '요걸'로도 바꿀 수 있음
+
+xml으로 spring을 control하는게 가장 좋음
+그런데 부품 적을 땐 상관없는데, 엄~~청 많아지면 xml에 그걸 기술하기가 번거로워짐
+
+우리 교실 뒤에 사물함 손잡이 다 빼버림
+원래는 저기에 a손잡이, b손잡이 등 다~~ 꽂을 수 있는게 스프링의 장점인데
+그런데 사물함에 손잡이 꽂으려면 손잡이 몇 백 개를 조립해야한다면 너무 번거로움
+그냥 정해놓고 딱 그거 사용...→ annotation
+그냥 1번사물함에는 a손잡이, 3번사물함에는 c손잡이 꽂게 딱! 정해놓은거 → annotation
+
+
+spring 제대로 알고 쓰는 사람들은 annotation 쓰기 힘들어함
+그럼에도 불구하고 왜 쓰는지, 언제 쓰는지 알아야 잘 쓸 수 있음
+
+
+○ 개요
+   SpringFramework 는 JAVA 5+ 부터 Annotation 을 제공하며,
+   Annotation 의 사용으로 설정 파일을 간결화 하고
+   객체 또는 메소드의 매핑을 명확히 처리할 수 있다.
+→ 설정 파일 : 상상하기 어려우면 'dispatcher-servlet' 생각하면 된다.
+               여러개의 bean 들이 등록되어 있고, 어떻게 조립되어 써야한다는 걸 적어놓음
+               그걸 spring container 한테 전달하고, 그 내용 바탕으로 spring이 조립함
+
+
+우리 뭐 쓸 때
+<bean></bean>
+<bean></bean>
+<bean></bean>
+	:
+다 등록했었음
+
+→ 이 작업이 필요한 프로그램들에 @Component 써놓고
+   'Spring아, @Component 써놓은거 몽땅 너가 다 찾아서 bean 으로 등록해줘~~' 하는거!!
+↑
+
+○ @Component
+   - 패키지 : org.springframework.streotype
+   - 버전 : spring 2.5
+   - 개요
+     : 『<context:component-scan>』 태그를 설정 파일에 추가하면
+       해당 어노테이션이 적용된 클래스를 빈으로 등록하게 된다.
+       범위는 디폴트로 싱글톤(singleton)이며 『@Scope』를 사용하여 지정할 수 있다.
+   - 설정 위치 : 클래스 선언부 위
+   - 추가 설정
+     : XML 설정 파일에 『<context:component-scan>』을 정의하고
+       적용할 기본 패키지를 『<base-package>』 속성으로 등록한다.
+       『<context:component-scan>』 태그를 사용하면
+       @Component, @Required, @Autowired 등의 어노테이션이 함께 적용된다.
+
+       예를 들면, 『<context:component-scan base-package="xxx">』 에서
+       xxx 패키지 하위에서 @Component 로 선언된 클래스를 Bean 으로 자동 등록한다.
+       Bean 의 이름은 해당 클래스명(첫 글자는 소문자)이 사용된다.
+
+       『<context:component-scan>』요소에는 scoped-proxy 속성이 존재한다.
+       scoped-proxy 속성은 <aop:scoped-proxy/> 요소처럼
+       WebApplicationContext 에서만 유효하며
+       "session", "globalSession", "request" 이외의 scope 는 무시되며
+       다음의 3가지 값을 설정할 수 있다.
+       ·no : proxy 를 설정하지 않는다. (기본값)
+       ·interfaces : JDK Dynamic Proxy 를 이용한 Proxy 생성
+       ·targetClass : 클래스에 대해 프록시를 생성(CGLIB 를 이용한 Proxy 생성)
+   - 사용 예
+     @Component
+     @Scope("prototype")	//-- 생략하면 싱글톤
+     public class Test
+     {
+        // ...
+     }
+
+
+
+
+
+-html 할 때도 썼었음. 이건 꼭 적어야하는, 꼭 있어야하는 값이야! 할 때 썼었음
+-dto 만들 때 dto 값들 모두 가져다가 씀? nono
+ 필요한 부분들만 가지고 와서 쓰는 경우들이 많음
+-'이 값은 꼭 있어야 하는 값이니까 액션 수행할 때, 이거 값 없다면
+ 나한테 알려줬으면 좋겠어' 하고 붙이는게 『@Required』
+- @Required 써놓으면
+  스프링이 컨테이너 안에서 작업하는 과정에서, '엥 얘는 참조할 값이 없네?' 하면
+  '주인님 이거 이상해요'하고 우리한테 알려주는거
+↑
+○ @Required
+   - 패키지 : org.springframework.beans.factory.annotation
+   - 버전 : spring 2.0
+   - 개요
+     : @Required 어노테이션은 필수 프로퍼티임을 명시하는 것으로
+       필수 프로퍼티를 설정하지 않을 경우 빈 생성 시 예외를 발생시키게 된다.
+   - 설정 위치 : setter 메소드
+   - 추가 설정
+     : <bean class="org.springframework.beans.factory.annotation
+                       .RequiredAnnotationBeanPostProcessor"> 클래스를
+       빈으로 등록시켜줘야 한다.
+       해당 설정 대신에 『<context:annotation-config>』 태그를 사용해도 된다.
+
+       『<context:annotation-config>』 태그는
+       어노테이션과 관련하여 다음의 BeanPostProcessor 를 함께 등록한다.
+       ·@Required(RequiredAnnotationBeanPostProcessor)
+       ·@Autowired(AutowiredAnnotationBeanPostProcessor)
+       ·@Resource, @PostConstruct, @PreDestroy(CommonAnnotationBeanPostProcessor)
+       ·@Configulation(ConfigulationClassPostProcessor)
+
+       ① 1단계 : 코드 내에 프로퍼티 설정 메소드에 『@Required』 어노테이션을 붙인다.
+
+          public class TestBean      // ◀◀◀
+          {
+               private TestDAO testDao;
+            
+               @Required
+               public void setTestDao(TestDao testDao)
+               {
+                  this.testDao = testDao;
+               }
+          }
+
+       ② 2단계 : 스프링 설정 파일에 RequiredAnnotationBeanPostProcessor 클래스를
+                  빈으로 등록한다.
+
+          <bean class="org.springframework.beans.factory.annotation
+                          .RequiredAnnotationBeanPostProcessor"/>
+
+          <bean name="testBean" class="com.test.TestBean">
+                 <!--
+                         『@Required』 어노테이션을 적용하였으므로
+                         설정하지 않을 경우 예외를 발생시키게 된다.
+                 -->
+                 <property name="testDao" ref="testDao"/>
+          </bean>
+
+          RequiredAnnotationBeanPostProcessor 클래스는
+          스프링 컨테이너에 등록된 bean 객체를 조사하여
+          @Required 어노테이션으로 설정되어 있는 프로퍼티에 대해
+          값이 제대로 설정되어 있는지 검사하고 
+          설정되어 있지 않으면 bean 생성 시 예외를 발생시키게 된다.
+
+          RequiredAnnotationBeanPostProcessor 클래스를 빈으로 등록하지 않고
+          『<context:annotation-config>』 와 같이 태그를 이용할 수도 있다.
+
+          <?xml version="1.0" encoding="UTF-8"?>
+          <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:p="http://www.springframework.org.schema/p"
+           xmlns:context="http://www.springframework.org/schema/context"
+           xsi:schemaLocation="http://www.springframework.org/schema/beans
+                 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                 http://www.springframework.org/schema/context
+                 http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+                 <context:annotation-config />   <!-- ◀◀◀ -->
+
+          </beans>
+
+
+
+
+
+-자동으로 묶어주는거
+-자동차 객체 만드는데 bean으로 엔진 만들어져있음. 
+ 내가 별도로 bean으로 등록해놓지 않았는데
+ 스프링한테 ' 야, 내 설계도 모아놓은거에 엔진과 관련된거 있을거야. 
+              그거 너가 찾아서 자동으로 넣어줘~'라고 하는거
+ <bean 엔진1>
+ </bean 엔진1>
+
+ <bean 자동차>
+    <property 엔진> 
+ </bean>
+ 이라면 자동차 bean 보다 위에 엔진 만들고 ref="엔진1" 해줘야하는데
+
+bean 엔진 저거 안 써놓고, 그냥 야 어디 있을꺼니까 너가 찾아서 주입해줘! 하는거
+그럼 그 안에서 엔진 타입 찾아서 꽂아서 주입해줌
+↑
+○ @Autowired
+   - 패키지 : org.springframework.beans.factory.annotation
+   - 버전 : spring 2.5
+   - 개요
+     : @Autowired 어노테이션은 의존관계를 자동 설정할 때 사용하며
+       타입을 이용하여 의존하는 객체를 삽입해 주도록 처리한다.
+       그러므로 해당 타입의 빈 객체가 존재하지 않거나
+       또는 2개 이상 존재할 경우 스프링은 예외를 발생시키게 된다.
+   - 설정 위치 : 생성자, 필드, 메소드(setter 가 아니어도 무방하다.)
+   - 추가 설정
+     : <bean class="org.springframework.beans.factory.annotation
+                       .AutowiredAnnotationBeanPostProcessor"/> 클래스를
+       빈으로 등록시켜 주어야 한다.
+       해당 설정 대신에 『<context:annotation-config/>』 태그를 사용해도 된다.
+   - 옵션
+     : required- @Autowired 어노테이션을 적용한 프로퍼티에 대해
+       설정할 필요가 없는 경우에 false 값을 주며,
+       이 때, 해당 프로퍼티가 존재하지 않더라도 스프링은 예외를 발생시키지 않는다.
+       『@Autowired(required=false)』로 선언한다. (기본값은 true)
+   - 특징
+     byType 으로 의존관계를 자동으로 설정할 경우
+     같은 타입의 빈이 2개 이상 존재하면 예외가 발생하게 되는데,
+     @Autowired 도 이러한 문제가 발생한다.
+     이럴 경우, @Qualifier 를 사용하면 동일한 타입의 빈 중
+     특정 빈을 사용하도록 하여 문제를 해결할 수 있다.
+     
+     @Autowired
+     @Qualifier("test")
+     private Test test;
+
+
+
+
+
+마침 아까처럼 엔진타입을 꽂아줘야하는데
+프로그램 중에 엔진설계도가 여러 개 있음
+엔진설계도가 한 개 있다면, 그냥 스프링이 그거 찾아서 그거대로 조립해서 삽입해줌
+그런데 2개 있다면, 스프링 입장에서는 '이 엔진 조립? 저 엔진 조립? 하라는건지 헷갈리네'
+그럼 자기가 덮어주고 선택해서 하진 않을꺼임..ㅎㅎ
+헷갈리면 일단 와서 보고함 '엔진 삽입해달라햇는데 설계도 2개 있는데 어떤거 삽입할까??'
+그럴 때 '엔진2개면 이거써줘~' 라고 해놓는게 → @Qualifier
+↑
+○ @Qualifier
+   - 패키지 : org.springframework.beans.factory.annotation
+   - 버전 : spring 2.5
+   - 개요
+     : @Qualifier 어노테이션은 @Autowired 의 목적에서
+       동일 타입의 빈 객체가 존재할 경우 특정 빈을 삽입할 수 있게 설정한다.
+       @Qualifier("mainBean")의 형태로 @Autowired 와 같이 사용하며
+       해당 <bean> 태그에 <qualifier value="mainBean"/> 태그를 선언해 주어야 한다.
+       메소드에서 두 개 이상의 파라미터를 사용할 경우에는
+       그 파라미터 앞에 선언해야 한다.
+   - 설정 위치 : @Autowired 어노테이션과 함께 사용
+   - 추가 설정 : 동일 타입의 빈 객체 설정에서 
+                 『qualifier value="[alias명]"/>』 를 추가해준다.
+   - 옵션 : name -alias명
+
+
+
+
+@Resource → bean 등록하는거
+@Autowired 같은 경우는 byType 이라 타입으로 등록하는거 
+지금은 resource가 더 익숙하지만 나중에는 autowired 가 더 익숙해질 것이다.
+왜냐면 Resource는 byName이라 이름으로 등록하는거!
+↑
+○ @Resource
+   - 개요
+     : 자바 6 버전 및 JEE 5 버전에 추가된 것으로
+       어플리케이션에서 필요로 하는 자원을 자동 연결할 때 사용된다.
+       스프링 2.5 부터 지원하는 어노테이션으로
+       스프링에서는 의존하는 빈 객체를 전달할 때 사용한다.
+       @Autowired 와 같은 기능을 수행하며
+       @Autowired 와의 차이점은 @Autowired 는 타입으로(byType),
+       @Resource 는 이름으로(byName) 연결을 수행한다는 것이다.
+   - 설정 위치 : 프로퍼티, setter 메소드
+   - 추가 설정
+     : 『<bean class="org.springframework.beans.factory.annotation
+                         .CommonAnnotationBeanPostProcessor"/>』클래스를
+       빈으로 등록시켜 주어야 한다.
+       해당 설정 대신에 『<context:annotation-config/>』태그를 사용해도 된다.
+   - 옵션 : name
+     name 속성에 자동으로 연결될 빈 객체의 이름을 입력한다.
+     @Resource(name="testDao")
+     CommonAnnotationBeanPostProcessor 클래스를
+     설정 파일에 빈 객체로 등록하여 어노테이션을 적용시키게 된다.
+
+
+
+사용빈도 떨어짐
+Constructor 는 생성자
+생성자가 객체 생성한 다음/후(post)에 뭐하라는지 등록해놓는거!
+↑
+○ @PostConstruct
+   - 패키지 : javax.annotation
+   - 버전 : jdk 1.6, spring 2.5
+   - 개요
+     : 의존하는 객체를 설정한 이후에 초기화 작업을 수행하기 위해 사용
+   - 설정 위치 : 초기화 작업 수행 메소드
+   - 추가 설정
+     : 『<bean class="org.springframework.beans.factory.annotation
+                         .CommonAnnotationBeanPostProcessor"/>』 클래스를
+       빈으로 등록시켜 주어야 한다.
+       해당 설정 대신에 『<context:annotation-config/>』 태그를 사용해도 된다.
+
+
+
+
+사용빈도 떨어짐
+destroy는 다 사용한 다음에 생성된 객체 파괴하는거
+메모리 해제하기 전(pre)에 어떤 업무 수행할 지 써놓는거
+↑
+○ @PreDestory
+   - 패키지 : javax.annotation
+   - 버전 : jdk 1.6, spring 2.5
+   - 개요
+     : 컨테이너테이서 객체를 제거하기 전에 해야 할 작업을 수행하기 위해 사용
+   - 설정 위치 : 해당 작업 수행 메소드
+   - 추가 설정
+     : 『<bean class="org.springframework.benas.factory.annotation
+                         .CommonAnnotationBeanPostProcessor"/>』 클래스를
+       빈으로 등록시켜 주어야 한다.
+       해당 설정 대신에 『<context:annotation-config/>』 태그를 사용해도 된다.
+
+
+---------------------------------------------------------------------------------------------
+
+■■■ Spring AOP 관련 Annotation ■■■
+
+※ Spring AOP Annotation 을 활용하기 위한 관련 용어
+   - advice : 공통 기능을 구현한 클래스
+   - target : advice 가 적용될 객체
+   - joinpoint : advice 가 적용될 지점 (즉, target 의 메소드)
+   - pointcut : 실제로 advice 가 적용된 joinpoint(ponitcut 은 joinpoint 의 부분집합)
+   - advisor(=aspect) : advice + pointcut
+   - weaving : advice 를 핵심 로직 코드에 적용하는 것
+
+
+mvc에서 주인공은 controller
+aop에서 주인공은 보조업무
+→ 보조업무가 자리잡은 다음에 주업무 불러다 쓰는거
+   oop를 도와주는 개념이 aop 
+↑
+○ @Aspect
+   - 개요
+     : AspectJ 5 버전에 새롭게 추가된 어노테이션으로 
+       @Aspect 어노테이션을 사용하면 설정 파일에 Advice 및 Pointcut 등의 설정을
+       하지 않고도 자동으로 Advice 를 적용할 수 있다.
+   - 설정 위치
+     : 클래스 선언부 위
+   - 추가 설정
+     : XML 설정 파일에 『<aop:aspectj-autoproxy/>』를 정의한다.
+       『<aop:aspectj-autoproxy/>』 태그는 @Aspect 어노테이션이 적용된 클래스를
+       로딩하여 클래스에 명시된 Advice 및 Pointcut 정보를 이용하여
+       알맞은 빈 객체에 Advice 를 적용하게 된다.
+
+※ @Aspect 어노테이션이 적용된 클래스
+   Advice 로 사용될 메소드에는 Advice 를 의미하는 어노테이션을 설정한다.
+
+   1) @Before 어노테이션
+      Before Advice 로 사용할 메소드에 적용
+
+   2) @After 어노테이션
+      After Advice 로 사용할 메소드에 적용
+
+   3) @AfterReturning 어노테이션과 @AfterThrowing 어노테이션
+      각각 리턴 값과 예외 객체를 전달받을 파라미터의 이름으로 지정하며
+      Advice 메소드에서 리턴 값과 예외 객체를 사용할 수 있도록 한다.
+
+   4) @Around 어노테이션
+      ProceedingJoinPoint.proceed() 메소드를 호출하여
+      프록시 대상 객체의 메소드를 호출한다.
+
+   5) @Around 어노테이션을 제외한 나머지 Advice 를 표시하는 어노테이션들
+      메소드는 프록시 대상 객체에 대한 정보가 필요한 경우
+      첫 번째 파라미터로 JoinPoint 를 사용
+
+※ AspectJ 의 Pointcut 표현식
+   AspectJ 는 Pointcut 을 명시할 수 있는 다양한 명시자를 제공하는데,
+   스프링은 메소드 호출과 관련된 명시자만을 지원하고 있다.
+   execution 명시자는 Advice 를 적용할 메소드를 명시할 때 사용되며,
+   기본 형식은 다음과 같다.
+
+   execution(수식어패턴 리턴타입패턴 패키지패턴.클래스패턴.메소드패턴(파라미터패턴))
+   - 수식어패턴 : 생략 가능하며 public, protected 등이 온다.
+   - 리턴타입패턴 : 리턴 타입을 명시한다.
+   - 패키지패턴, 클래스패턴, 메소드패턴 : 클래스 이름 및 메소드 이름을 패턴으로 명시
+   - 파라미터패턴 : 매칭될 파라미터에 대해 명시한다.
+
+   각 패턴은 『*』을 이용하여 모든 값을 표현할 수 있으며,
+   『..』을 이용하여 0개 이상이라는 의미를 표현할 수 있다.
+   『within』 명시자는 메소드가 아닌 특정 타입에 속하는 메소드를
+   Pointcut 으로 설정할 때 사용된다.
+   각각의 표현식은 『&&』 나 『||』 연산자를 이용하여 연결할 수 있다.
+
+   예를 들어, 『@Aspect』 어노테이션을 사용하는 경우
+
+			public의 return 자료형이 뭐가 되던지 get() 메소드 실행하게 해라
+				      ---------------
+   @AfterThrowing(pointcut="execution(public * get*())
+                        && execution(public void set*(..))")
+   public void throwingLogging()
+   {
+       // ...
+   }
+
+
+---------------------------------------------------------------------------------------------
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+	■■■ Spring MVC 관련 Annotation ■■■
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+○ 개요
+   Spring Web MVC Framework 는 JAVA 5+ 부터 Annotation 을 제공하며,
+   Annotation 의 사용으로 설정 파일을 간결과하고
+   View 페이지와 객체 또는 메소드의 매핑을 명확하게 처리할 수 있다.
+
+
+
+	나는 dao 만 품을 수 있는 annotation 이라고 하면
+	└→ controller, datasource, connection 품지 못할 거임
+	나는 다중/입체적인 스테레오 타입이라고 하면, 다 수용가능
+	└→ 나는 여러 유형의 bean을 만들어 낼 수 있어
+
+	 다중 타입, 입체적인 타입
+	 ---------------------
+※ 4개의 스테레오(stereo) 타입 어노테이션
+   - @Component
+     : 스테레오 타입 어노테이션의 조상 → 이런저런거 다 품어줌
+
+	↓ 다 Component Annotation 의 하위 Annotation 이다.
+
+   - @Controller	→ 컨트롤러만 수용 가능
+     : Spring MVC 에서 컨트롤러로 인식
+	→ 내가 컨트롤러라고 써놓은거 찾아서 해줘
+   - @Service
+     : 역할 부여 없이 스캔 대상이 되는데... 비즈니스 클래스에 사용
+   - @Repository
+     : @Repository 어노테이션은 일반적으로 DAO 에 사용되며
+       DB Exception 을 DataAccessException 으로 변환
+
+
+※ Spring Annotation 에서 정리한 내용에 추가 ++
+→ @Component 정리안했지만 위에 내용정리해놓은거 보면 됨!
+
+○ @Service
+   - 개요
+     : @Service 를 적용한 클래스는 비즈니스 로직이 들어가는 Service 로 등록이 된다.  
+       Controller 에 있는 @Autowired 는 @Service("xxxService")에 등록된
+       『xxxService』와 변수명이 같아야 하며
+       Service 에 있는 @Autowired 는 @Repository("xxxDao")에 등록된
+       『xxxDao』와 변수명이 같아야 한다.
+
+       @Service("helloService")
+       public class HelloServiceImpl implements HelloService
+       {
+	   @Autowired
+            private HelloDAO helloDao;
+
+            public void hello()
+            {
+                System.out.println("HelloServiceImpl : " + hello());
+                helloDao.selectHello();		// ◀◀◀
+            }
+       }
+
+       // 『helloDao.selectHello();』와 같이 @Autowired 를 이용한
+       // 객체를 활용하여 DAO 객체를 호출한다.
+
+
+○ @Repository
+   - 패키지 : org.springframework.stereotype
+   - 버전 : spring 2.0
+   - 개요
+     : @Repository 어노테이션은 일반적으로 DAO 에 사용되며
+       DB Exception 을 DataAccessException 으로 변환하는 기능을 수행한다.
+
+○ @Controller
+   - 패키지 : org.springframework.stereotype
+   - 버전 : spring 2.5
+   - 개요
+     : Spring MVC 의 Controller 클래스 선언을 단순화시켜준다.
+       스프링 컨트롤러, 서블릿 등을 상속할 필요가 없으며,
+       @Controller 로 등록된 클래스 파일에 대한 bean 을 자동으로 생성해준다.
+       Controller 로 사용하고자 하는 클래스에 @Controller 를 지정해주면
+       component-scan 으로 자동 등록된다.
+   - 추가 설정(xml)
+     : 『<context:component-scan base-package="com.*"/>』
+   - 추가 설정(java)
+     : package com.test;
+
+       import org.springframework.stereotype.Controller;
+
+       @Controller
+       public class SpringC
+       {
+           // ...
+       }
+
+ 
+┌→ 우리가 employee, regionList 할 때 했던거랑 같은 맥락
+○ @RequestMapping
+   - 개요
+     : @RequestMapping 어노테이션은 URL 을 class 또는 method 와
+       mapping 시켜주는 역할을 수행한다.
+       Annotation 을 사용하지 않을 때 지정했던 Controller 등록을 위한
+       URL bean 설정을 생략할 수 있따.
+       클래스에 하나의 url mapping 을 할 경우
+       class 위에 『@RequestMapping("/url")』을 지정하며 
+       GET 또는 POST 방식 등의 옵션을 부여할 수 있다.
+       해당 method 가 실행된 후, return 페이지가 별도로 정의되어 있지 않으면
+       @RequestMapping("/url") 에서 설정된 url 로 다시 돌아간다.
+
+       @Controller
+       @RequestMapping("/com/test/*")
+       public class HelloController
+       {
+            @RequestMaping(method=RequestMethod.GET, value="go")
+            public returntype getMethodName()
+            {
+                  // ...
+            }
+
+            @RequestMaping(method=RequestMethod.POST, value="go2")
+            public returntype getMethodName2()
+            {
+                  // ...
+            }
+       }
+
+
+┌→ 요청하는 과정에서 어떤 값을 넘길 때 사용
+○ @RequestParam
+   - 개요
+     : @RequestParam 어노테이션은 key=value 형태로
+       화면에서 넘어오는 파라미터를 매핑된 메소드의 파라미터로 지정해준다.
+       주로 get 방식으로 들어오는 request 에서 사용한다.
+
+       @Controller
+       public class BlogController
+       {
+            // ...
+            				    파라미터 넘어오는거 
+					    자동으로 blogId에 넣어서 넘겨주겠다
+            @RequestMapping("/editBlog")    ----------------------------------
+            public ModelMap editBlogHandler(@RequestParam("blogId") int blogId)
+            {
+                 blog = blogService.findBlog(blogId);
+                 return new ModelMap(blog);
+            }
+            
+            // ...
+       }
+
+       // 『.../editBlog.action?blogId=3』과 같은 요청으로 접근할 때
+       // editBlogHandler() 메소드의 파라미터인 blogId 에는 3이 세팅된다.
+       // 필수 요건이 아닐 경우, @RequestParam(value="id", required="false") 와 같이
+       // 옵션을 부여하여 사용할 수 있다.
+
+
+
+○ @ModelAttribute
+   - 개요
+     : @ModelAttribute 어노테이션은 화면의 form 속성으로 넘어온 model을 
+       매핑된 method 의 파라미터로 지정해주는 역할을 수행한다.
+       주로 post 타입으로 넘어오는 form 속성의 model 값을 받아올 때 사용한다.
+       (get / post 모두 통용된다.)
+
+       @Controller
+       public class BlogController
+       {
+            // ...           
+
+            @RequestMapping("/updateBlog")
+            public String updateBlogHandler(@ModelAttribute("blog") Blog blog)
+            {
+                blogService.updateBlog(blog);
+                return "redirect:findBlog.action";
+            }
+
+            // ...                
+       }
+
+
+○ @SessionAttributes
+   - 개요
+     : @SessionAttributes 어노테이션은 세션 상에서 model 의 정보를
+       유지하고자 할 경우 사용할 수 있다.
+
+       @Controller
+       @SessionAttributes("blog")
+       public class BlogController
+       {
+            // ...
+
+            @RequestMapping("/createBlog")
+            public ModelMap createBlogHandler()
+            {
+                blog = new Blog();
+                blog.setRegDate(new Date());
+                // ...
+                return new ModelMap(blog);     
+            }
+
+            // ...       
+       }
+
+┌→ 값을 초기화하는 형태
+○ @InitBinder
+   - 개요
+     : WebDataBinder 를 초기화하는 method 를 지정할 수 있는 설정을 제공한다.
+       일반적으로 WebDataBinder 는 Annotation handler 메소드의
+       command 와 form 객체 인자를 조작하는데 사용된다.
+       InitBinder 메소드가 필수적으로 변환 값을 가질 필요는 없으며,
+       일반적으로 이런 경우에 void 를 선언한다.
+       특별히 인자는 WebDataBinder 와 WebRequest 또는 Locale 의 조합으로 이루어지며
+       이러한 조건이 만족되면 context-specific editors 를 등록하는 것 이 허용된다.
+
+       ·WebDataBinder
+         : WebDataBinder 는 web request parameter 를
+           자바 빈 객체에 바인딩하는 특정한 DataBinder 이다.
+           WebDataBinder 는 웹 환경이 필요하지만,
+           Servlet API 에 의존적이지 않다.
+           Servlet API 에 의존적인 ServletRequestDataBinder 와 같이
+           특정한 DataBinder 를 위한 더 많은 bass class 를 제공한다.
+
+       ·RequestMapping
+         : RequestMapping 어노테이션은 web request 를
+           특정한 handler class 와 handler method 에 mappoing 하는 역할을 수행한다.
+           대응하는 handlerMapping(for ytype level annotation)과
+           handlerAdapter(for method level annotation)가 dispath 에 존재한다면,
+           @RequestMapping 이 처리될 것이다.
+           
+       ·WebRequest
+         : WebRequest 는 웹 요청에 대한 Generic interface 이다.
+           주로 일반 request metatdata 에 generic web request interseptors 의
+           접근을 허용하여 metadata 에 대한 처리를 하기 위한 것이지
+           request 자체를 처리하기 위한 것은 아니다.
+
+
+※ Annotation 기반 Controller 에서 ServletContext 구하기
+
+   // ...
+   
+   @Controller
+   public class DownloadController
+   {
+       @Autowired
+       private ServletContext sc;
+
+       @RequestMapping
+       public ModelAndView download(@RequestParam("filePath") String filePath) throws Exception
+       {
+            String path = sc.getRealPath(filePath);
+            return new ModelAndView("common.download", "downloadFile", new File(path));
+       }
+   }
+
+   
+
+
+          

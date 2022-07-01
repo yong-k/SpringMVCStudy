@@ -1,0 +1,103 @@
+
+--○ sts 설치 방법
+
+① 아예 설치
+   https://spring.io/tools 에서 다운
+② 플러그인 형태로 설치
+   help > eclipse marketplace > find에 'sts'라고 검색
+   > spring tools 3 뜨는거 install
+→ 실습 환경에서는 이렇게 하면 안에 내용 알기 힘들기 때문에,
+   이렇게 안하고 dynamic web project에서 실습!
+   실무에서 사용할 때는 이렇게 설치하기~
+----------------------------------------------------------------
+
+
+실무에서 eclipse 로 spring 개발 할 일 많지 않겟지만
+그렇게 한다고 하면 .jar 뭐 넣어야 할 지 모르겠으면
+.libd 빼고 그냥 다 집어넣기
+
+sts 사용하면 지가 알아서 필요한 라이브러리 다운받아줄거임
+
+spring은 log기반으로 하기 때문에,
+org.apache.commons에 있는 logging이 기본
+
+oracle 연결하려면 ojdbc6.jar
+
+jstl 사용하기 위해 jstl.jar, standard.jar
+
+----------------------------------------------------------------
+
+
+api documents 눈에 안들어오더라도 자꾸 읽어봐야 함
+
+dispatcher-servlet.xml 작성하는거
+우리가 예전에 했던 applicationContext.xml, config.xml 과 조금 다르다.
+C:\s-f-3.0.2-with-docs\docs\spring-framework-reference
+→ pdf 	> 5. The Web > 15. Web MVC framework
+	> p450 에 가면 xml 템플릿 복사 
+	→ dispatcher-servlet.xml 에 덮어쓰기
+	   ctrl+shift+f 해서 포맷다듬어주기
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:p="http://www.springframework.org/schema/p"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+<context:component-scan base-package="org.springframework.samples.petclinic.web"/>
+// ...
+</beans>
+----------------------------------------------------------------
+
+
+
+기존에 jstl 태그 등록해놓은거 없음
+preferences > web > jsp files > editor > templates
+> new jsp file (html5) 선택하고 edit 하고 편집
+
+<%@ page contentType="text/html; charset=${encoding}"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%
+	request.setCharacterEncoding("UTF-8");
+	String cp = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="${encoding}">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+${cursor}
+</body>
+</html>
+
+
+>> ok > apply > apply and close
+----------------------------------------------------------------
+
+브라우저 에러뜨면
+window > web browser > 3 chrome or 1 default system web browser 
+설정해주기
+
+----------------------------------------------------------------
+web.xml
+Java EE generate deployement ~~ stub 해도 web.xml 생김
+
+----------------------------------------------------------------
+
+-면접 시, 사용해본 컨테이너가 뭐야? 라고 질문받았다면
+	그거에 대한 답은 → 톰캣
+	웹을 기반으로 어떤 서비스 요청있었을 때 거기에 대한 
+	리소스 적재해놓고, 거기에 대한 서비스 제공해주고
+	그런 역할 수행하는게 톰캣 
+
+
+MVC에서는 view 페이지를 클라이언트가 직접 들고가서 만나게끔 하면 안된다.
+앞으로는 .jsp 파일에서 ctrl+f11 누르면 no. 404에러 뜨는게 당연하다고 
+생각해야 한다.
